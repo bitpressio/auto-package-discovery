@@ -6,7 +6,9 @@ use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -22,7 +24,10 @@ class DiscoverCommand extends Command
             ->setName('scan')
             ->setDescription('Scan a path for service providers and aliases')
             ->addArgument('path', InputArgument::OPTIONAL, 'The path to scan - by default the current directory', '.')
-        ;
+            ->addOption('write', 'w', InputOption::VALUE_NONE,
+                'Do not ask any interactive question')
+            ->addOption('no-interaction', 'n', InputOption::VALUE_NONE,
+                'Do not ask any interactive question');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
@@ -33,7 +38,7 @@ class DiscoverCommand extends Command
             throw new InvalidArgumentException('The path does not exist');
         }
 
-        $output->writeln('<info>Search in:</info> '.$path);
+        $output->writeln('<info>Search in:</info> ' . $path);
 
         $finder = new Finder();
 
@@ -62,11 +67,48 @@ class DiscoverCommand extends Command
             $laravel['aliases'] = $this->aliases;
         }
 
-        $output->writeln(json_encode([
+        $extra = [
             'extra' => [
                 'laravel' => $laravel
             ]
-        ], JSON_PRETTY_PRINT));
+        ];
+
+        if ($input->getOption('write')) {
+            $composerJsonPath = $path . DIRECTORY_SEPARATOR . 'composer.json';
+
+            $output->writeln('<info>Write result in:</info> ' . $composerJsonPath);
+
+            if (!$this->validComposerFile($composerJsonPath)) {
+                $output->writeln('<error>No composer.json found.</error>');
+                return;
+            }
+
+            $composerJson = json_decode(file_get_contents($composerJsonPath), true);
+            $composerJson = array_merge_recursive($composerJson, $extra);
+
+            if(isset($composerJson['extra']['laravel']['providers'])) {
+                $composerJson['extra']['laravel']['providers'] = array_unique($composerJson['extra']['laravel']['providers']);
+            }
+
+            $newJson = json_encode($composerJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+            if(!$input->getOption('no-interaction')) {
+                $question = new ConfirmationQuestion("You are about to overwrite the composer file, please verify the above contents.\nShould I continue? (y/n)",
+                    false);
+
+                $output->writeln(json_encode($extra, JSON_PRETTY_PRINT));
+                if (!$this->getHelper('question')->ask($input, $output, $question)) {
+                    $output->writeln('<info>You canceled the write change, aborting.</info>');
+                    return;
+                }
+            }
+
+            file_put_contents($composerJsonPath, $newJson);
+            $output->writeln('<info>Done.</info>');
+        } else {
+            $output->writeln('<info>Add the following to your composer.json file:</info>');
+            $output->writeln(json_encode($extra, JSON_PRETTY_PRINT));
+        }
     }
 
     private function detectServiceProvider(SplFileInfo $file)
@@ -109,5 +151,15 @@ class DiscoverCommand extends Command
         $class = $matches[1];
 
         return [$namespace, $class];
+    }
+
+    private function validComposerFile($path)
+    {
+        return (
+            file_exists($path) &&
+            is_file($path) &&
+            is_readable($path) &&
+            is_writeable($path)
+        );
     }
 }
