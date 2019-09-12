@@ -8,6 +8,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -74,24 +75,31 @@ class DiscoverCommand extends Command
 
             $output->writeln('<info>Write result in:</info> '.$composerJsonPath);
 
-            if (!(
-                file_exists($composerJsonPath)
-                && is_file($composerJsonPath)
-                && is_readable($composerJsonPath)
-                && is_writeable($composerJsonPath)
-            )) {
+            if (! $this->validComposerFile($composerJsonPath)) {
                 $output->writeln('<error>No composer.json found.</error>');
                 return;
             }
 
+            // @todo Avoid merging duplicate extra and possibly make the merging solution more elegenat :D
             $composerJson = json_decode(file_get_contents($composerJsonPath), true);
+            $composerJson['extra']['laravel']['providers'] = array_unique(array_merge($composerJson['extra']['laravel']['providers'] ?? [], $extra['extra']['laravel']['providers']));
+            $composerJson['extra']['laravel']['aliases'] = array_merge($composerJson['extra']['laravel']['aliases'] ?? [], $extra['extra']['laravel']['aliases']);
 
-            $composerJson = array_merge_recursive($composerJson, $extra);
+            $newJson = json_encode($composerJson, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 
-            file_put_contents($composerJsonPath, json_encode($composerJson, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+            $question = new ConfirmationQuestion("$newJson\n\nYou are about to overwrite the composer file, please verify the above contents.\nShould I continue? (y/n)", false);
+
+            if (! $this->getHelper('question')->ask($input, $output, $question)) {
+                $output->writeln('<info>You canceled the write change, aborting.</info>');
+                return;
+            }
+
+            file_put_contents($composerJsonPath, $newJson);
+        } else {
+            $output->writeln(json_encode($extra, JSON_PRETTY_PRINT));
         }
 
-        $output->writeln(json_encode($extra, JSON_PRETTY_PRINT));
+        $output->writeln('<info>Done.</info>');
     }
 
     private function detectServiceProvider(SplFileInfo $file)
@@ -134,5 +142,15 @@ class DiscoverCommand extends Command
         $class = $matches[1];
 
         return [$namespace, $class];
+    }
+
+    private function validComposerFile($path)
+    {
+        return (
+            file_exists($path)
+            && is_file($path)
+            && is_readable($path)
+            && is_writeable($path)
+        );
     }
 }
