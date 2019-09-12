@@ -5,6 +5,7 @@ namespace BitPress\AutoDiscovery\Console;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -20,7 +21,8 @@ class DiscoverCommand extends Command
         $this
             ->setName('scan')
             ->setDescription('Scan a path for service providers and aliases')
-            ->addArgument('path', InputArgument::REQUIRED, 'The path to scan');
+            ->addArgument('path', InputArgument::REQUIRED, 'The path to scan')
+            ->addOption('write', 'w', InputOption::VALUE_NONE, 'Write the result in the composer.json in given directory');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
@@ -54,11 +56,35 @@ class DiscoverCommand extends Command
             $laravel['aliases'] = $this->aliases;
         }
 
-        $output->writeln(json_encode([
+        $extra = [
             'extra' => [
                 'laravel' => $laravel
             ]
-        ], JSON_PRETTY_PRINT));
+        ];
+
+        if ($input->getOption('write')) {
+            $composerJsonPath = $path.DIRECTORY_SEPARATOR.'composer.json';
+
+            $output->writeln('<info>Write result in:</info> '.$composerJsonPath);
+
+            if (!(
+                file_exists($composerJsonPath)
+                && is_file($composerJsonPath)
+                && is_readable($composerJsonPath)
+                && is_writeable($composerJsonPath)
+            )) {
+                $output->writeln('<error>No composer.json found.</error>');
+                return;
+            }
+
+            $composerJson = json_decode(file_get_contents($composerJsonPath), true);
+
+            $composerJson = array_merge_recursive($composerJson, $extra);
+
+            file_put_contents($composerJsonPath, json_encode($composerJson, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+        }
+
+        $output->writeln(json_encode($extra, JSON_PRETTY_PRINT));
     }
 
     private function detectServiceProvider(SplFileInfo $file)
