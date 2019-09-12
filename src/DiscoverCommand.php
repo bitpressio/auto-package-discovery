@@ -95,7 +95,7 @@ class DiscoverCommand extends Command
 
     private function extractClass(SplFileInfo $file)
     {
-        preg_match('/namespace ([^;]+);/', $file->getContents(), $matches);
+        preg_match('/namespace\s+([^;]+);/', $file->getContents(), $matches);
         $namespace = $matches[1];
         preg_match('/class\s+([^\s]+)\s/', $file->getContents(), $matches);
         $class = $matches[1];
