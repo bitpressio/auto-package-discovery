@@ -1,0 +1,48 @@
+{
+    "name": "bitpress/auto-package-discovery",
+    "description": "",
+    "keywords": [
+        "laravel",
+        "console",
+        "package-discovery"
+    ],
+    "homepage": "https://github.com/bitpress/auto-package-discovery",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Paul Redmond",
+            "email": "paulrredmond@gmail.com",
+            "homepage": "https://bitpress.io",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.3",
+        "ext-json": "*",
+        "symfony/console": "^4.3.4",
+        "symfony/finder": "^4.3.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "BitPress\\AutoDiscovery\\Console\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BitPress\\AutoDiscovery\\Console\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "bin": [
+        "auto-discovery"
+    ]
+}
