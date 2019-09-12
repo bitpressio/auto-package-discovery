@@ -95,11 +95,11 @@ class DiscoverCommand extends Command
             }
 
             file_put_contents($composerJsonPath, $newJson);
+            $output->writeln('<info>Done.</info>');
         } else {
+            $output->writeln('<info>Add the following to your composer.json file:</info>');
             $output->writeln(json_encode($extra, JSON_PRETTY_PRINT));
         }
-
-        $output->writeln('<info>Done.</info>');
     }
 
     private function detectServiceProvider(SplFileInfo $file)
