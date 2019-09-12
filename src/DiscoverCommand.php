@@ -24,7 +24,8 @@ class DiscoverCommand extends Command
             ->setName('scan')
             ->setDescription('Scan a path for service providers and aliases')
             ->addArgument('path', InputArgument::OPTIONAL, 'The path to scan - by default the current directory', '.')
-            ->addOption('write', 'w', InputOption::VALUE_NONE, 'Write the result in the composer.json in given directory');
+            ->addOption('write', 'w', InputOption::VALUE_NONE,
+                'Write the result in the composer.json in given directory');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
@@ -35,7 +36,7 @@ class DiscoverCommand extends Command
             throw new InvalidArgumentException('The path does not exist');
         }
 
-        $output->writeln('<info>Search in:</info> '.$path);
+        $output->writeln('<info>Search in:</info> ' . $path);
 
         $finder = new Finder();
 
@@ -71,25 +72,28 @@ class DiscoverCommand extends Command
         ];
 
         if ($input->getOption('write')) {
-            $composerJsonPath = $path.DIRECTORY_SEPARATOR.'composer.json';
+            $composerJsonPath = $path . DIRECTORY_SEPARATOR . 'composer.json';
 
-            $output->writeln('<info>Write result in:</info> '.$composerJsonPath);
+            $output->writeln('<info>Write result in:</info> ' . $composerJsonPath);
 
-            if (! $this->validComposerFile($composerJsonPath)) {
+            if (!$this->validComposerFile($composerJsonPath)) {
                 $output->writeln('<error>No composer.json found.</error>');
                 return;
             }
 
             // @todo Avoid merging duplicate extra and possibly make the merging solution more elegenat :D
             $composerJson = json_decode(file_get_contents($composerJsonPath), true);
-            $composerJson['extra']['laravel']['providers'] = array_unique(array_merge($composerJson['extra']['laravel']['providers'] ?? [], $extra['extra']['laravel']['providers']));
-            $composerJson['extra']['laravel']['aliases'] = array_merge($composerJson['extra']['laravel']['aliases'] ?? [], $extra['extra']['laravel']['aliases']);
+            $composerJson['extra']['laravel']['providers'] = array_unique(array_merge($composerJson['extra']['laravel']['providers'] ?? [],
+                $extra['extra']['laravel']['providers']));
+            $composerJson['extra']['laravel']['aliases'] = array_merge($composerJson['extra']['laravel']['aliases'] ?? [],
+                $extra['extra']['laravel']['aliases']);
 
-            $newJson = json_encode($composerJson, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+            $newJson = json_encode($composerJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-            $question = new ConfirmationQuestion("$newJson\n\nYou are about to overwrite the composer file, please verify the above contents.\nShould I continue? (y/n)", false);
+            $question = new ConfirmationQuestion("$newJson\n\nYou are about to overwrite the composer file, please verify the above contents.\nShould I continue? (y/n)",
+                false);
 
-            if (! $this->getHelper('question')->ask($input, $output, $question)) {
+            if (!$this->getHelper('question')->ask($input, $output, $question)) {
                 $output->writeln('<info>You canceled the write change, aborting.</info>');
                 return;
             }
@@ -147,10 +151,10 @@ class DiscoverCommand extends Command
     private function validComposerFile($path)
     {
         return (
-            file_exists($path)
-            && is_file($path)
-            && is_readable($path)
-            && is_writeable($path)
+            file_exists($path) &&
+            is_file($path) &&
+            is_readable($path) &&
+            is_writeable($path)
         );
     }
 }
