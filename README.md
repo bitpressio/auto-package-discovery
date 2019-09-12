@@ -1,6 +1,6 @@
 # Auto Package Discovery
 
-A CLI tool to generate package discovery composer configuration.
+A CLI tool to generate Laravel's [package discovery](https://laravel.com/docs/packages#package-discovery) composer configuration.
 
 ## License
 
