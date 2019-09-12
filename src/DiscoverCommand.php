@@ -77,10 +77,7 @@ class DiscoverCommand extends Command
 
     private function extractServiceProvider(SplFileInfo $file)
     {
-        preg_match('/namespace ([^;]+);/', $file->getContents(), $matches);
-        $namespace = $matches[1];
-        preg_match('/class\s+([^\s]+)\s/', $file->getContents(), $matches);
-        $class = $matches[1];
+        [$namespace, $class] = $this->extractClass($file);
 
         if ($class && $namespace) {
             $this->providers[] = $namespace . '\\' . $class;
@@ -89,13 +86,20 @@ class DiscoverCommand extends Command
 
     private function extractAlias(SplFileInfo $file)
     {
+        [$namespace, $class] = $this->extractClass($file);
+
+        if ($class && $namespace) {
+            $this->aliases[$class] = $namespace . '\\' . $class;
+        }
+    }
+
+    private function extractClass(SplFileInfo $file)
+    {
         preg_match('/namespace ([^;]+);/', $file->getContents(), $matches);
         $namespace = $matches[1];
         preg_match('/class\s+([^\s]+)\s/', $file->getContents(), $matches);
         $class = $matches[1];
 
-        if ($class && $namespace) {
-            $this->aliases[$class] = $namespace . '\\' . $class;
-        }
+        return [$namespace, $class];
     }
 }
