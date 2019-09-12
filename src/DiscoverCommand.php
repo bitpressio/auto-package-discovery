@@ -2,9 +2,11 @@
 
 namespace BitPress\AutoDiscovery\Console;
 
+use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -20,12 +22,19 @@ class DiscoverCommand extends Command
         $this
             ->setName('scan')
             ->setDescription('Scan a path for service providers and aliases')
-            ->addArgument('path', InputArgument::REQUIRED, 'The path to scan');
+            ->addArgument('path', InputArgument::OPTIONAL, 'The path to scan - by default the current directory', '.')
+        ;
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $path = $input->getArgument('path');
+        $path = realpath($input->getArgument('path'));
+
+        if ($path === false) {
+            throw new InvalidArgumentException('The path does not exist');
+        }
+
+        $output->writeln('<info>Search in:</info> '.$path);
 
         $finder = new Finder();
 
