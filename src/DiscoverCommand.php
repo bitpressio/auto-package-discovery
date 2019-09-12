@@ -25,7 +25,9 @@ class DiscoverCommand extends Command
             ->setDescription('Scan a path for service providers and aliases')
             ->addArgument('path', InputArgument::OPTIONAL, 'The path to scan - by default the current directory', '.')
             ->addOption('write', 'w', InputOption::VALUE_NONE,
-                'Write the result in the composer.json in given directory');
+                'Do not ask any interactive question')
+            ->addOption('no-interaction', 'n', InputOption::VALUE_NONE,
+                'Do not ask any interactive question');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
@@ -81,21 +83,24 @@ class DiscoverCommand extends Command
                 return;
             }
 
-            // @todo Avoid merging duplicate extra and possibly make the merging solution more elegenat :D
             $composerJson = json_decode(file_get_contents($composerJsonPath), true);
-            $composerJson['extra']['laravel']['providers'] = array_unique(array_merge($composerJson['extra']['laravel']['providers'] ?? [],
-                $extra['extra']['laravel']['providers']));
-            $composerJson['extra']['laravel']['aliases'] = array_merge($composerJson['extra']['laravel']['aliases'] ?? [],
-                $extra['extra']['laravel']['aliases']);
+            $composerJson = array_merge_recursive($composerJson, $extra);
+
+            if(isset($composerJson['extra']['laravel']['providers'])) {
+                $composerJson['extra']['laravel']['providers'] = array_unique($composerJson['extra']['laravel']['providers']);
+            }
 
             $newJson = json_encode($composerJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-            $question = new ConfirmationQuestion("$newJson\n\nYou are about to overwrite the composer file, please verify the above contents.\nShould I continue? (y/n)",
-                false);
+            if(!$input->getOption('no-interaction')) {
+                $question = new ConfirmationQuestion("You are about to overwrite the composer file, please verify the above contents.\nShould I continue? (y/n)",
+                    false);
 
-            if (!$this->getHelper('question')->ask($input, $output, $question)) {
-                $output->writeln('<info>You canceled the write change, aborting.</info>');
-                return;
+                $output->writeln(json_encode($extra, JSON_PRETTY_PRINT));
+                if (!$this->getHelper('question')->ask($input, $output, $question)) {
+                    $output->writeln('<info>You canceled the write change, aborting.</info>');
+                    return;
+                }
             }
 
             file_put_contents($composerJsonPath, $newJson);
