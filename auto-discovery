@@ -4,5 +4,8 @@
 require __DIR__.'/vendor/autoload.php';
 
 $app = new Symfony\Component\Console\Application('Auto Package Discovery Generator', '1.0.0');
-$app->add(new BitPress\AutoDiscovery\Console\DiscoverCommand);
+
+$discoverCommand = new BitPress\AutoDiscovery\Console\DiscoverCommand;
+$app->add($discoverCommand);
+$app->setDefaultCommand($discoverCommand->getName(), true);
 $app->run();
