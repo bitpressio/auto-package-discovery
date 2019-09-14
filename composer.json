@@ -43,6 +43,6 @@
         "sort-packages": true
     },
     "bin": [
-        "laravel-discovery"
+        "laravel-discover"
     ]
 }
