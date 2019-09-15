@@ -3,7 +3,7 @@
 
 require __DIR__.'/vendor/autoload.php';
 
-$app = new Symfony\Component\Console\Application('Auto Package Discovery Generator', '1.0.0');
+$app = new Symfony\Component\Console\Application('Auto Package Discovery Generator', '0.2.0');
 
 $discoverCommand = new BitPress\AutoDiscovery\Console\DiscoverCommand;
 $app->add($discoverCommand);
