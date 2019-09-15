@@ -24,7 +24,6 @@ class SourceFileTest extends TestCase
     /** @test */
     public function it_gets_class_info()
     {
-        $this->assertTrue(false, 'Intentional break to test CI process.');
        $file = new SplFileInfo(
            __DIR__.'/../resources/fixtures/ValidServiceProvider.php',
            '',
