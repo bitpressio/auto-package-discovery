@@ -2,6 +2,7 @@
 
 namespace BitPress\AutoDiscovery\Console;
 
+use BitPress\AutoDiscovery\Discovery\SourceFile;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -27,9 +28,7 @@ class DiscoverCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $path = realpath($input->getArgument('path'));
-
-        if ($path === false) {
+        if (! $path = realpath($input->getArgument('path'))) {
             throw new InvalidArgumentException('The path does not exist');
         }
 
@@ -44,70 +43,39 @@ class DiscoverCommand extends Command
 
         /** @var SplFileInfo $file */
         foreach ($finder->in($path) as $file) {
-            $this->detectServiceProvider($file);
-            $this->detectAlias($file);
+            $source = new SourceFile($file);
+
+            if ($source->isServiceProvider()) {
+                $this->providers[] = $source->fullyQualifiedClass();
+            } else if ($source->isFacade()) {
+                $this->aliases[$source->getNamespace()] = $source->fullyQualifiedClass();
+            }
         }
 
         if (empty($this->providers) && empty($this->aliases)) {
             $output->writeln('<info>No providers or aliases found.</info>');
             return;
         }
-        $laravel = [];
-
-        if (!empty($this->providers)) {
-            $laravel['providers'] = $this->providers;
-        }
-
-        if (!empty($this->aliases)) {
-            $laravel['aliases'] = $this->aliases;
-        }
 
         $output->writeln(json_encode([
             'extra' => [
-                'laravel' => $laravel
+                'laravel' => $this->getDiscoveryConfig()
             ]
         ], JSON_PRETTY_PRINT));
     }
 
-    private function detectServiceProvider(SplFileInfo $file)
+    private function getDiscoveryConfig()
     {
-        if (preg_match('/use Illuminate\\\\Support\\\\ServiceProvider/', $file->getContents())) {
-            $this->extractServiceProvider($file);
+        $results = [];
+
+        if (! empty($this->providers)) {
+            $results['providers'] = $this->providers;
         }
-    }
 
-    private function detectAlias(SplFileInfo $file)
-    {
-        if (preg_match('/use Illuminate\\\\Support\\\\Facades\\\\Facade/', $file->getContents())) {
-            $this->extractAlias($file);
+        if (! empty($this->aliases)) {
+            $results['aliases'] = $this->aliases;
         }
-    }
 
-    private function extractServiceProvider(SplFileInfo $file)
-    {
-        [$namespace, $class] = $this->extractClass($file);
-
-        if ($class && $namespace) {
-            $this->providers[] = $namespace . '\\' . $class;
-        }
-    }
-
-    private function extractAlias(SplFileInfo $file)
-    {
-        [$namespace, $class] = $this->extractClass($file);
-
-        if ($class && $namespace) {
-            $this->aliases[$class] = $namespace . '\\' . $class;
-        }
-    }
-
-    private function extractClass(SplFileInfo $file)
-    {
-        preg_match('/namespace\s+([^;]+);/', $file->getContents(), $matches);
-        $namespace = $matches[1];
-        preg_match('/class\s+([^\s]+)\s/', $file->getContents(), $matches);
-        $class = $matches[1];
-
-        return [$namespace, $class];
+        return $results;
     }
 }
