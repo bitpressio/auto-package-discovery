@@ -7,7 +7,7 @@ if (file_exists(__DIR__.'/../../autoload.php')) {
     require __DIR__.'/vendor/autoload.php';
 }
 
-$app = new Symfony\Component\Console\Application('Auto Package Discovery Generator', '0.2.0');
+$app = new Symfony\Component\Console\Application('Auto Package Discovery Generator', '0.3.0');
 
 $discoverCommand = new BitPress\AutoDiscovery\Console\DiscoverCommand;
 $app->add($discoverCommand);
