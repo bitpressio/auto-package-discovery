@@ -18,17 +18,17 @@ class SourceFileTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->finder = (new Finder())->in(__DIR__.'/../resources/fixtures');
+        $this->finder = (new Finder())->in(__DIR__ . '/../resources/fixtures');
     }
 
     /** @test */
     public function it_gets_class_info()
     {
-       $file = new SplFileInfo(
-           __DIR__.'/../resources/fixtures/ValidServiceProvider.php',
-           '',
-           ''
-       );
+        $file = new SplFileInfo(
+            __DIR__ . '/../resources/fixtures/ValidServiceProvider.php',
+            '',
+            ''
+        );
 
         $sourceFile = new SourceFile($file);
 
@@ -39,10 +39,10 @@ class SourceFileTest extends TestCase
     public function it_gets_class_info_for_non_namespaced_classes()
     {
         $file = new SplFileInfo(
-            __DIR__.'/../resources/fixtures/ClassWithoutNamespace.php',
+            __DIR__ . '/../resources/fixtures/ClassWithoutNamespace.php',
             '',
             ''
-       );
+        );
         $sourceFile = new SourceFile($file);
 
         $this->assertEquals([null, 'ClassWithoutNamespace'], $sourceFile->getClassInfo());
@@ -52,7 +52,7 @@ class SourceFileTest extends TestCase
     public function it_detects_valid_service_provider()
     {
         $file = new SplFileInfo(
-            __DIR__.'/../resources/fixtures/ValidServiceProvider.php',
+            __DIR__ . '/../resources/fixtures/ValidServiceProvider.php',
             '',
             ''
         );
@@ -63,7 +63,7 @@ class SourceFileTest extends TestCase
         $this->assertEquals('Example\NamespaceTest\ValidServiceProvider', $sourceFile->fullyQualifiedClass());
 
         $file2 = new SplFileInfo(
-            __DIR__.'/../resources/fixtures/ValidServiceProviderWithExtraSpacesAndLeadingBackslash.php',
+            __DIR__ . '/../resources/fixtures/ValidServiceProviderWithExtraSpacesAndLeadingBackslash.php',
             '',
             ''
         );
@@ -78,7 +78,7 @@ class SourceFileTest extends TestCase
     public function it_detects_valid_service_provider_with_fully_qualified_extends()
     {
         $file = new SplFileInfo(
-            __DIR__.'/../resources/fixtures/ValidServiceProviderWithFullyQualfiedExtends.php',
+            __DIR__ . '/../resources/fixtures/ValidServiceProviderWithFullyQualfiedExtends.php',
             '',
             ''
         );
@@ -100,7 +100,7 @@ class SourceFileTest extends TestCase
     public function it_detects_valid_service_provider_with_extra_spacing()
     {
         $file = new SplFileInfo(
-            __DIR__.'/../resources/fixtures/ValidServiceProviderWithExtraSpaces.php',
+            __DIR__ . '/../resources/fixtures/ValidServiceProviderWithExtraSpaces.php',
             '',
             ''
         );
@@ -122,7 +122,7 @@ class SourceFileTest extends TestCase
     public function it_detects_valid_facades()
     {
         $file = new SplFileInfo(
-            __DIR__.'/../resources/fixtures/ValidFacade.php',
+            __DIR__ . '/../resources/fixtures/ValidFacade.php',
             '',
             ''
         );
@@ -135,7 +135,7 @@ class SourceFileTest extends TestCase
         $this->assertEquals('Example\NamespaceTest\ValidFacade', $sourceFile->fullyQualifiedClass());
 
         $file2 = new SplFileInfo(
-            __DIR__.'/../resources/fixtures/ValidFacadeWithExtraSpaces.php',
+            __DIR__ . '/../resources/fixtures/ValidFacadeWithExtraSpaces.php',
             '',
             ''
         );
@@ -152,7 +152,7 @@ class SourceFileTest extends TestCase
     public function it_detects_valid_facades_with_fully_qualified_extends()
     {
         $file = new SplFileInfo(
-            __DIR__.'/../resources/fixtures/ValidFacadeWithFullyQualifiedExtends.php',
+            __DIR__ . '/../resources/fixtures/ValidFacadeWithFullyQualifiedExtends.php',
             '',
             ''
         );
