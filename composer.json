@@ -27,12 +27,12 @@
     },
     "autoload": {
         "psr-4": {
-            "BitPress\\AutoDiscovery\\Console\\": "src"
+            "BitPress\\AutoDiscovery\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "BitPress\\AutoDiscovery\\Console\\Tests\\": "tests"
+            "BitPress\\AutoDiscovery\\Tests\\": "tests"
         }
     },
     "scripts": {
